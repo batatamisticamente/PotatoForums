@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salvar e Ler Dados do Firebase</title>
+    <style>
+        body {
+            background-color: #bcbcbc;
+            font-family: Arial, sans-serif;
+        }
+        .Box {
+            width: 64.5%;
+            height: 100px;
+            background-color: rgb(254, 255, 255);
+            border: #c8c8ff solid 2px;
+            position: relative;
+            margin-left: 17%;
+            z-index: 2;
+            margin-bottom: 10px;
+            cursor: pointer;
+            color: #0000ff;
+            font-size: 20px;
+        }
+        #container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        #BigBox {
+            width: 65.5%;
+            height: 200%;
+            margin-left: 16%;
+            position: fixed;
+            background-color: rgb(254, 255, 255);
+            top: 0;
+            z-index: 1;
+        }
+        #dataList {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="BigBox"></div>
+    <ul id="dataList"></ul>
+
+    <input type="text" id="userInput" placeholder="Digite algo">
+    <button onclick="saveData()">Salvar</button>
+    <button onclick="getData()">Carregar Dados</button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, getCountFromServer } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQzFpAElLY24NPjkgxy95tQtS-ko5JPPI",
+            authDomain: "potatoforums.firebaseapp.com",
+            projectId: "potatoforums",
+            storageBucket: "potatoforums.appspot.com",
+            messagingSenderId: "367795898903",
+            appId: "1:367795898903:web:99748d11966bf175c56a52"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.saveData = async function() {
+            const input = document.getElementById("userInput").value.trim();
+            if (input === "") return alert("Digite algo!");
+
+            try {
+                await addDoc(collection(db, "dados"), { 
+                    texto: input, 
+                    timestamp: new Date()
+                });
+                alert("Dados salvos!");
+            } catch (e) {
+                console.error("Erro ao salvar: ", e);
+                alert("Erro ao salvar dados.");
+            }
+        };
+
+        window.getData = async function() {
+            const q = query(collection(db, "dados"), orderBy("timestamp", "desc"));
+            const querySnapshot = await getDocs(q);
+            const dataList = document.getElementById("dataList");
+            dataList.innerHTML = "";
+
+            let container = document.getElementById("container");
+            container.innerHTML = "";
+
+            querySnapshot.forEach((doc) => {
+                const texto = doc.data().texto;
+
+                let div = document.createElement("div");
+                div.className = "Box";
+                div.textContent = texto;
+
+                container.appendChild(div);
+
+                div.addEventListener("click", function() {
+                    window.location.href = `Forum.html?${doc.id}`;
+                });
+
+                const li = document.createElement("li");
+                li.textContent = texto;
+                dataList.appendChild(li);
+            });
+        };
+    </script>
+
+</body>
+</html>
